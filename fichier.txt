@@ -1,0 +1,1 @@
+Ce code utilise la bibliothèque re pour travailler avec des expressions régulières. Il définit le modèle de recherche pour les mots-clés en utilisant l'expression régulière r'\b\w+\b', qui correspond à tous les groupes de caractères qui commencent et se terminent par un caractère de mot (lettre, chiffre, souligné).
