@@ -21,6 +21,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+@app.post("/api/users")
+async def create_user(user:_schemas.UserCreate,db:_orm.Session=_fastapi.Depends(_services.get_db)):
+    if db.query(models.User).filter(models.User.email == user.email).first():
+        raise _exceptions.HTTPException(status_code=200, detail="L'email existe déjà")
+    db_user = models.User(first_name=user.first_name,last_name=user.last_name,email=user.email, hashed_password=_hash.bcrypt.hash(user.hashed_password))
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    # return db_user
+    return await _services.create_token(db_user)
 @app.post("/api/token")
 async def generate_token(
     data: dict,
@@ -34,17 +44,17 @@ async def generate_token(
         raise _fastapi.HTTPException(status_code=401, detail="Invalid Credentials")
 
     return await _services.create_token(user)
-@app.post("/api/token")
-async def generate_token(
-    form_data: _security.OAuth2PasswordRequestForm = _fastapi.Depends(),
-    db: _orm.Session = _fastapi.Depends(_services.get_db),
-):
-    user = await _services.authenticate_user(form_data.username, form_data.password, db)
+# @app.post("/api/token")
+# async def generate_token(
+#     form_data: _security.OAuth2PasswordRequestForm = _fastapi.Depends(),
+#     db: _orm.Session = _fastapi.Depends(_services.get_db),
+# ):
+#     user = await _services.authenticate_user(form_data.username, form_data.password, db)
 
-    if not user:
-        raise _fastapi.HTTPException(status_code=401, detail="Invalid Credentials")
+#     if not user:
+#         raise _fastapi.HTTPException(status_code=401, detail="Invalid Credentials")
 
-    return await _services.create_token(user)
+#     return await _services.create_token(user)
 @app.get("/api/users/me", response_model=_schemas.User)
 async def get_user(user: _schemas.User = _fastapi.Depends(_services.get_current_user)):
     return user
