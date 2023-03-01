@@ -50,5 +50,7 @@ class HistoryDelete(_pydantic.BaseModel):
     id: int
 class HistoryResponse(_pydantic.BaseModel):
     id: int
+class HistoryResponseOutput(_pydantic.BaseModel):
+    output: str
 class ListHistory(_pydantic.BaseModel):
     pass
