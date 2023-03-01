@@ -72,6 +72,10 @@ async def create_history(history:_schemas.HistoryCreate, db: _orm.Session = _fas
     db.add(new_history)
     db.commit()
     db.refresh(new_history)
+    add_history= models.ListHistory(user_id=user.id,id_history=new_history.id)
+    db.add(add_history)
+    db.commit()
+    db.refresh(add_history)
     return {"message": "History created successfully", "history": new_history}
 
 @app.delete("/history")
@@ -84,12 +88,12 @@ async def delete_history(history: _schemas.HistoryDelete, db: _orm.Session = _fa
     return {"message": "History deleted successfully"}
 
 @app.get("/history")
-def get_history_ids(user: _schemas.User = _fastapi.Depends(_services.get_current_user), db: _orm.Session = _fastapi.Depends(_services.get_db)):
-    
-    histories = db.query(_schemas.ListHistory.id_history).filter_by(user_id=user.id).all()
-    response = [_schemas.HistoryResponse(id=history[0]) for history in histories]
-    return response
-    # except SQLAlchemyError:
-    #     raise _fastapi.HTTPException(status_code=500, detail="Database error")
-    # except:
-    #     raise _fastapi.HTTPException(status_code=400, detail="Bad request")
+def get_history(user: _schemas.User = _fastapi.Depends(_services.get_current_user), db: _orm.Session = _fastapi.Depends(_services.get_db)):
+    try:
+        histories = db.query(models.ListHistory.id_history).filter_by(user_id=user.id).all()
+        response = [_schemas.HistoryResponse(id=history[0]) for history in histories]
+        return response
+    except SQLAlchemyError:
+        raise _fastapi.HTTPException(status_code=500, detail="Database error")
+    except:
+        raise _fastapi.HTTPException(status_code=400, detail="Bad request")
